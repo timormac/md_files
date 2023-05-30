@@ -8,6 +8,12 @@
 
 
 
+# 注意事项
+
+1  connect后用process进行两流关联时，必须用keyby之后再关联，不然的话可能会出现同key分到不同流的情况。
+
+​	比如tuple2( id ,  count ),id相同，但是整体tuple2是如何shuffle的不清楚，所以要手动keyby代码才能保证数据没问题。
+
 
 
 # 问题待解决
@@ -34,6 +40,10 @@
 4flink的分区策略有什么用，大部分flink是消费消息队列kafka，而kafka的API应该是有自己的数据发送模式，flink设置了应该没用
 
 5分流作用，flink分流的场景是什么，分流之后也有其他操作，不可以通过if判断来在一个代码里写吗，除非涉及到重用
+
+6 为什么process和flatmap里面有collector 而 map等算子里面没有collector，flatmap好理解，process为什么有collector
+
+7 3流以上的join怎么实现的，目前用connect+ process只能实现2流join
 
 
 
@@ -308,6 +318,16 @@ random策略通过 ds.shuffle()来调用
 
 
 ##### 分流合流
+
+union省略过
+
+connect 如果用process进行
+
+##### 窗口
+
+窗口如果不用keyby的话，则无论怎么设置并行度，强制变为1
+
+用keyby的话，才有并行度
 
 
 

@@ -134,7 +134,9 @@ git pull origin  master,还是失败，显示拒绝合并无关的历史，这�
 
 ​	在push到windows库，git pull的时候可以选择从哪个远程仓库拉取。
 
-​	
+5 把md目录上传github管理遇到问题：当前分支 master 没有对应的上游分支，为推送当前分支并建立与远程上游的跟踪。
+
+   执行 git push --set-upstream 远仓别名 master
 
 
 
