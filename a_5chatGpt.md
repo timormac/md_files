@@ -1,0 +1,1 @@
+登陆  https://chat.openai.com/ ，注意用chrom浏览器进不去，用safari能进入，但是用用谷歌账号登录后也被屏蔽了

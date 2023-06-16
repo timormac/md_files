@@ -26,9 +26,7 @@
 
 ​	集合名字.for +tab快速创建集合的for循环
 
-8 注释
-
-​	command +/单行注释
+8 command +/单行注释
 
 ​	command+option+/ 多行注释
 
@@ -47,6 +45,8 @@
 14 查看接口的实现类 control+H ,鼠标选中接口
 
 15 shift + TAB 选中的代码整体前移
+
+16 /add +TAB生成参数模版
 
 
 
@@ -73,7 +73,15 @@
 
 #### 配置maven 
 
-在setting中，找到build ,找到build tools ,然后maven
+在setting=> build => build tools =>勾选overwirte,更改repository和settings.xml
+
+idea默认maven位置 : /Users/timor/.m2/settings.xml             /Users/timor/.m2/repository
+
+idea默认maven是集成的maven3，需要退出项目然后设置maven才是全局的maven
+
+注意从git上下载的项目和手动到入的项目,maven还是用idea自带的maven3
+
+
 
 #### 配置签名信息
 
@@ -90,13 +98,29 @@ settings =>Editor=>File and Code=>然后找到Files旁边的include=>点击File 
 */
 ```
 
-#### 内置git使用
+#### 函数注释配置
+
+settings =>edit=>live Template+>点击右侧➕ =>选择Template group =>自定义名称=>选中刚定义的group=>点击右侧➕
+
+=>live Template =>Abbreviation输出调用指令(add) =>Description填写一下=>勾选最下方java，声明指令的作用为java代码
+
+=>/add加 tab调用指令
+
+模版如下：
+
+```
+**
+ * @description: $description$
+ * @return: $return$
+ * @Params:$params$
+ */
+```
 
 
 
-#### debug使用
+#### 集成tomcat
 
-自己弄一个工具，然后都用自己手写的类和对象，最后看看链路怎么走，怎么进去的。
+settings=>Bulid,excution=>Application Servers =>点击加号选中tomcat=>指定路径home
 
 
 
@@ -114,17 +138,41 @@ settings=>plugins=>搜索scala下载=>project structure =>Global libarys=>点击
 
 
 
+# idea集成git
+
+1  mac版右键代码打断点位置，选择 annotate with git blame ，可以查看当前代码是哪个版本初始拉取的(最后一次变化版本)
+
+选择 annotate with git blame后，左键点击打断点处，可以看到历史commit版本（点击左下角git查看log效果一样）
+
+2 idea中没有add，一般直接勾选更改和新建的文件，然后直接commit的时候，已经执行过add了
+
+
+
 
 
 
 
 # idea的使用
 
-#### idea默认maven位置
+#### debug使用
 
-/Users/timor/.m2/settings.xml
+自己弄一个工具，然后都用自己手写的类和对象，最后看看链路怎么走，怎么进去的。
 
-/Users/timor/.m2/repository
+1 step over  2 step into 3 force step into 4 step out 5 run to curse(进去光标)
+
+step over直接跳过当前行
+
+step into 进入方法 ,若当前行有多个方法，不同的方法会有提示，鼠标选择进入哪个想要看的方法
+
+force step into 可以进入到jdk库方法，而step into 不行
+
+step out 跳出方法，回到你点step into时的位置
+
+ run to curse 当你点入一个方法里面有很多行，你想具体看某行的实现，鼠标光标放到对应行首点run to curse
+
+
+
+
 
 #### 目录层级 
 
@@ -146,11 +194,13 @@ idea导入项目的时候，如果maven等无法下载。可以把/idea和。iml
 
 
 
-#### 某些设置
+#### 设置语法等级
 
 project structure 
 
 第一个是选择jdk版本，第二个是制定可执行语法等级，比如你是17版本jdk，但是如果指定是8的语法等级也不能用17的语法
+
+之前默认语法等级是5，导致无法使用lamda表达式
 
 
 
@@ -158,7 +208,7 @@ project structure
 
 如何从外部导入一个module，先将目录复制到对应的目录层级下，然后在project structure中导入module这样才会把复制过去的目录识别为一个module
 
-#### 
+
 
 #### project structure
 
@@ -174,9 +224,12 @@ idea导航栏有个run，有的pom文件，你把依赖设置成<scop>provided</
 
 
 
-# idea问题解决
+# idea问题记录
 
 1.pom导入jar依赖没问题，不过点进去之后，用idea 下载soure源码一直失败，在目录下的terminal执行 mvn dependency:sources
 
 2.从gitbub 拉取mac的项目，在winodows上运行找不到类。因为pom是provided，需要winodows配置run模版，配置with provided
 
+
+
+# idea问题待解决

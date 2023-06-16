@@ -1,5 +1,15 @@
 # java篇
 
+## 问题待解决
+
+1  看一些源码的时候，有时候需要传入一个借口，实现某个方法，比如flink的自定义map方法，有个问题，就是我现在想知道，这个传入的map方法，到底是谁在哪一步开始调用的，现在一直没头绪
+
+
+
+## 问题解决记录
+
+
+
 ## 代码原则
 
 详情请看csdn收藏的代码优化6大原则
@@ -14,16 +24,6 @@
 
 ```
 java -cp  a.jar   com.cbk.Test  java运行指定jar包中的类
-```
-
-
-
-## java常用类库
-
-#### colletctions
-
-```java
-
 ```
 
 
@@ -94,11 +94,29 @@ final修饰的类不能被继承，修饰的方法不能被重写。 被修饰�
 
 
 
-## 接口
+## 接口(新特性)
 
 接口和抽象类的主要区别就是，1 接口可以多继承，类不行   2接口只有抽象方法，抽象类可有实现方法
 
 接口多继承例子，fly接口，usb接口 如果你新的类要具有飞行和连接usb，必须实现上面2个借口
+
+
+
+新特性：
+
+接口只能extends 多个其他接口，但是不能implements其他接口
+
+接口可以继承接口，可以继承多个接口，并且接口中可以有实现方法和静态方法
+
+接口不能直接new对象，不过在看一些源码中,有的接口里有一些静态方法可以获得接口的实现对象
+
+例如在flink中的WatermarkStrategy接口，继承了extends TimestampAssignerSupplier, WatermarkGeneratorSupplier
+
+并且很多静态方法中的，返回值就是WatermarkStrategy的实现对象 
+
+
+
+
 
 ## 注解
 
@@ -432,11 +450,43 @@ public class TypeParserFactory {
 
 
 
+# java常用类库
+
+#### 日期库
+
+```java
+import org.apache.commons.lang3.time.DateFormatUtils;
+
+DateFormatUtils.format(ms,"yyyy-MM-dd HH:mm:ss.SSS")
+```
+
+#### json库
 
 
 
 
 
+# 源码解读习惯
 
+1 有一些代码,做一些判断之类的，但是并没有返回值什么的，比如说对于一个传入的集合不能为空,然后才能进行后续操作，
 
+源码里后续操作并不是通过if判断是否为空来执行的，而是做一个判空操作，若为空直接throw异常，这样后续不会执行
+
+例子:一些操作没有返回值，发挥作用是用throw异常
+
+```java
+    public <OUT> DataStreamSource<OUT> fromCollection(
+            Collection<OUT> data, TypeInformation<OUT> typeInfo) {
+      	
+        //这个操作是用来判断集合为空的，点进去看是做判断和throw异常
+        Preconditions.checkNotNull(data, "Collection must not be null");
+
+        //这个操作是判断元素为同类型，并且没有null元素，点进去看是做判断和throw异常
+        FromElementsFunction.checkCollection(data, typeInfo.getTypeClass());
+
+        SourceFunction<OUT> function = new FromElementsFunction<>(data);
+        return addSource(function, "Collection Source", typeInfo, Boundedness.BOUNDED)
+                .setParallelism(1);
+    }
+```
 
