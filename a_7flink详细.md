@@ -2,48 +2,25 @@
 
 # 代码问题
 
-自己弄个kafkasource和kafkasink
-
  事件水位线推进，自己的代码有bug没找到(已解决)
 
-自定义水位线推进模式，老师的实现类型和方法需要类型不同，没搞懂
+自己弄个kafkasource和kafkasink
+
+自定义水位线推进模式，老师的实现类型和方法所需要的类型不同，怎么能接进去的
+
+在 A2_TopnWindowAll有个问题，就是用了windowall，最后输出结果还是多个并行度结果
+
+
+
+A2_TopnWindowAll有个bug，就是总是报错.ArrayIndexOutOfBoundsException: -2147483648，不知道原因
+
+已经确定不是nc输出错误数据的问题了。好像设置并行度为2的时候就不会出问题了
 
 
 
 
 
-# 已解决问题
 
-1  事件水位线推进，自己的代码有bug：
-
-```java
-/*bug原因找到了,因为没设置并行度导致默认是8个线程，而水位线必须8个流里的数据都有数据并且事件时间更新到10s时才触发process执行
-*因为之前输入的key都是a,b导致其他线程没数据，导致其他线程水位线时间不更新，所以尽管a,1000但是还是不触发process窗口关闭
-* 后面设置并行度为2,就好了，不过必须a,b 2个事件时间都超过10
-          * 为了避免这种情况可以设置空闲时间等待.withIdleness(Duration.ofSeconds(10))
-          * //空闲等待10s，即当10s内其他分区没有数据更新事件时间是，等10s，按最大的时间时间同步到其他没数据的分区
-* */
-```
-
-
-
-
-
-# 个人理解
-
-1 flink 的DataStreamSource 模型和MR的区别，当某个算子比如map过后有多个分支时，这个map算子可以重用，和spark相同
-
-​	相比于MR这个优势
-
-2 flink侧输出流概念可以用在spark中，spark 2个流关联的时候关联不到的，输出到侧输出流保存下来。
-
-
-
-# 注意事项
-
-1  connect后用process进行两流关联时，必须用keyby之后再关联，不然的话可能会出现同key分到不同流的情况。
-
-​	比如tuple2( id ,  count ),id相同，但是整体tuple2是如何shuffle的不清楚，所以要手动keyby代码才能保证数据没问题。
 
 
 
@@ -91,7 +68,6 @@
 10 水位线规则
 
 ```java
-
 WatermarkStrategy<WaterSensor> watermarkStrategy = WatermarkStrategy
     .<WaterSensor>forBoundedOutOfOrderness(Duration.ofSeconds(2))
     .withTimestampAssigner(new SerializableTimestampAssigner<WaterSensor>() {
@@ -110,6 +86,60 @@ WatermarkStrategy<WaterSensor> watermarkStrategy = WatermarkStrategy
       
       
 ```
+
+
+
+11 看一些源码的时候，有时候需要传入一个借口，实现某个方法，比如flink的自定义map方法，有个问题，就是我现在想知道，这个传入的map方法，到底是谁在哪一步开始调用的，现在一直没头绪
+
+
+
+12 flink中waterMark是怎么传递的，比如先map 然后 process，不同算子之间，是根据流过的数据来更新watermark吗
+
+
+
+13 keyBy后的流，同一个key，注册多次定时器，会发生什么因为topn代码中，流的process注册了定时器，并且同一个key重复注册了
+
+
+
+# 已解决问题
+
+1  事件水位线推进，自己的代码有bug：
+
+```java
+/*bug原因找到了,因为没设置并行度导致默认是8个线程，而水位线必须8个流里的数据都有数据并且事件时间更新到10s时才触发process执行
+*因为之前输入的key都是a,b导致其他线程没数据，导致其他线程水位线时间不更新，所以尽管a,1000但是还是不触发process窗口关闭
+* 后面设置并行度为2,就好了，不过必须a,b 2个事件时间都超过10
+          * 为了避免这种情况可以设置空闲时间等待.withIdleness(Duration.ofSeconds(10))
+          * //空闲等待10s，即当10s内其他分区没有数据更新事件时间是，等10s，按最大的时间时间同步到其他没数据的分区
+* */
+```
+
+2 定时器重复注册
+
+在KeyedProcessFunction中可以住车定时器。processElement函数中每次处理一条数据，这样重复注册定时器，不会导致定时任务重复调用吗？
+
+答案是不会，应为Flink内部使用的HeapPriorityQueueSet来存储定时器，一个注册请求到来时，其add()方法会检查是否已经存在，如果存在则不会加入。并且是根据key来注册的。如果重复注册并且更改触发时间的话，需要自己去测一下
+
+
+
+
+# 个人理解
+
+1 flink 的DataStreamSource 模型和MR的区别，当某个算子比如map过后有多个分支时，这个map算子可以重用，和spark相同
+
+​	相比于MR这个优势
+
+2 flink侧输出流概念可以用在spark中，spark 2个流关联的时候关联不到的，输出到侧输出流保存下来。
+
+
+
+# 注意事项
+
+1  connect后用process进行两流关联时，必须用keyby之后再关联，不然的话可能会出现同key分到不同流的情况。
+
+​	比如tuple2( id ,  count ),id相同，但是整体tuple2是如何shuffle的不清楚，所以要手动keyby代码才能保证数据没问题。
+
+
 
 
 
@@ -465,6 +495,10 @@ process的方法，可以拿到context上下文，这个context能拿到侧输�
 
 ##### 水位线watermark
 
+注意水位线并不是只有窗口才用得到，普通的流也可以用到watermark，并且设置定时器
+
+
+
 事件时间 ，通过数据里的时间来推进，不随着系统时间走动。
 
 水位线就是时间事件进展的标记：数据量小的时候可以每个事件获取水位线。当数据量非常大时，每隔一段时间生成一个水位线。
@@ -495,13 +529,83 @@ process的方法，可以拿到context上下文，这个context能拿到侧输�
 
 
 
-窗口迟到数据进入不到窗口的, 
+窗口迟到数据进入不到窗口的,
+
+
+
+##### window join
+
+窗口之间的关联，比如滑动窗口。如果关联的数据分到2个窗口的话，会导致关联不上比如a,1   另一个流是a,11 那么关联不到。因为不同mysql表中创建数据的event time也是不同的，会出现事件事件相差很多的情况
+
+
+
+为了减少这种情况，有iterval join 。iterval join只支持事件时间。iterval join的思路就是针对一条流的每个数据，开辟出其时间戳前后的一段时间间隔，看这期间是否有来自另一条流的数据匹配。已经不是窗口的join模式了，是2个思路。可以理解成每个数据各自开一个窗口，去匹配元属。
+
+并且intterval join只能获取到关联到的数据，未关联的数据1.17版本支持直接获取，之前的版本不支持直接获取
+
+
 
 
 
 
 
 ### ProcessFunction底层API
+
+##### process函数类别
+
+Flink提供了8个不同的处理函数：
+
+（1）ProcessFunction
+
+最基本的处理函数，基于DataStream直接调用.process()时作为参数传入。
+
+（2）KeyedProcessFunction
+
+
+
+对流按键分区后的处理函数，基于KeyedStream调用.process()时作为参数传入。要想使用定时器，比如基于KeyedStream。
+
+（3）ProcessWindowFunction
+
+开窗之后的处理函数，也是全窗口函数的代表。基于WindowedStream调用.process()时作为参数传入。
+
+（4）ProcessAllWindowFunction
+
+同样是开窗之后的处理函数，基于AllWindowedStream调用.process()时作为参数传入。
+
+（5）CoProcessFunction
+
+合并（connect）两条流之后的处理函数，基于ConnectedStreams调用.process()时作为参数传入。关于流的连接合并操作，我们会在后续章节详细介绍。
+
+（6）ProcessJoinFunction
+
+间隔连接（interval join）两条流之后的处理函数，基于IntervalJoined调用.process()时作为参数传入。
+
+（7）BroadcastProcessFunction
+
+广播连接流处理函数，基于BroadcastConnectedStream调用.process()时作为参数传入。这里的“广播连接流”BroadcastConnectedStream，是一个未keyBy的普通DataStream与一个广播流（BroadcastStream）做连接（conncet）之后的产物。关于广播流的相关操作，我们会在后续章节详细介绍。
+
+（8）KeyedBroadcastProcessFunction
+
+按键分区的广播连接流处理函数，同样是基于BroadcastConnectedStream调用.process()时作为参数传入。与BroadcastProcessFunction不同的是，这时的广播连接流，是一个KeyedStream与广播流（BroadcastStream）做连接之后的产物。
+
+
+
+##### process方法：
+
+窗口的process方法，数据是攒一批然后统一处理，参数是个iterable
+
+流的process方法,是一条一条来的，一条一条处理的。
+
+
+
+
+
+##### 定时器timer
+
+定时器必须是keyby中后的流才能使用,相同的key如果注册多次定时器，后注册的会替换老的定时器
+
+
 
 ### Table API
 

@@ -154,6 +154,12 @@ settings=>plugins=>搜索scala下载=>project structure =>Global libarys=>点击
 
 # idea的使用
 
+#### 误删文件还原
+
+右键变动的文件夹，选择local History
+
+
+
 #### debug使用
 
 自己弄一个工具，然后都用自己手写的类和对象，最后看看链路怎么走，怎么进去的。

@@ -1,5 +1,45 @@
 # git本地篇
 
+
+
+
+
+#### 解决问题记录
+
+1   git管理的目录，子目录下不能再有.git文件
+
+ 我自己建立的git管理仓库和idea创建的有冲突，idea是在每个工程下创建一个.git，我是在总目录下创建.git
+
+当总目录下有.git 其子目录也有.git 时会报错
+
+
+
+2 fork库不会更新的问题
+
+ fork的仓库，当原库更新的时候，fork的仓库不会更新，所以每次我们更新我们fork库的时候。winodows每次写代码的时候先从mac库pull，然后写完之后,在push到windows库，git pull的时候可以选择从哪个远程仓库拉取。
+
+widows上的mac库邀请团队协作时生成的会自动更新，windows库是fork的mac库。所以当mac上传时，windows账号的mac库会更新，但是fork的windows库不会更新。
+
+
+
+3  文件改动无法合并问题
+
+当clone库后，通过idea做了些vcs文件修改，导致.idea中的.vcs发生变化，然后当去从原仓库pull时候，导致没法合并。
+
+这个时候git stash 封存修改  再git pull ，然后再git stash pop 把修改还原
+
+
+
+5 当前分支 master 没有对应的上游分支
+
+把md目录上传github管理遇到问题：当前分支 master 没有对应的上游分支，为推送当前分支并建立与远程上游的跟踪。
+
+   执行 git push --set-upstream 远仓别名 master
+
+
+
+#### 待解决问题
+
 #### 配置本地信息
 
 进去仓库目录，git init 初始化目录
@@ -96,71 +136,49 @@ git pull origin  master,还是失败，显示拒绝合并无关的历史，这�
 
 
 
-#### 团队协作开发
+#### fork仓库开源开发
 
-1
+1 先fork仓库  =》 然后clone 自己fork的仓库 =》 写代码，当要push的时候，先把原仓库的代码拉取然后合并，再push到自己fork仓库
 
-先fork仓库  =》 然后clone 自己fork的仓库 =》 写代码，当要push的时候，先把原仓库的代码拉取然后合并，再push到自己fork仓库
+ =〉最后在fork仓库来 提交pull request ，经过原仓库审核合并。
 
-=〉最后在fork仓库来 提交pull request ，经过原仓库审核合并
-
-
-
-
-
-
-
-
-
-#### 解决问题记录
-
-1   我自己建立的git管理仓库和idea创建的有冲突，idea是在每个工程下创建一个.git，我是在总目录下创建.git
-
-当总目录下有.git 其子目录也有.git 时会报错
-
-
-
-2 出问题了，fork的仓库，会看到自动更新，刚刚看到了。mac push的代码,fork能看到  
-
-fork的仓库，当原库更新的时候，fork的仓库不会更新，所以每次我们更新我们fork库的时候，需要从原仓库fetch一下，合并到当前的本地仓库，然后再推到自己fork的仓库
-
-
-
-3  当clone库后，通过idea做了些vcs文件修改，导致.idea中的.vcs发生变化，然后当去从原仓库pull时候，导致没法合并。
-
-这个时候git stash 封存修改  再git pull ，然后再git stash pop 把修改还原
-
-
-
-4 fork的仓库无法自动实时更新，解决方法，winodows每次写代码的时候先从mac库pull，然后写完之后,
-
-​	在push到windows库，git pull的时候可以选择从哪个远程仓库拉取。
-
-
-
-5 把md目录上传github管理遇到问题：当前分支 master 没有对应的上游分支，为推送当前分支并建立与远程上游的跟踪。
-
-   执行 git push --set-upstream 远仓别名 master
-
-
-
-#### 待解决问题
-
-# git团队篇
-
-1 先创建远程仓库详情看本地关联云端 =》在github仓库点settings=>collaborator=>add people 
-
-2 从远程仓库 git clone <版本库的网址>
+2  fork的仓库代码修改后，windows点pull request=> new pull request=>mac进入pull request点击合并同意
 
 3 fork实时同步问题：winodows每次写代码的时候先从mac库pull，然后写完之后,在push到windows库，git pull的时候可以选择从哪个	远程仓库拉取。
 
-4  fork的仓库代码修改后，windows点pull request=> new pull request=>mac进入pull request点击合并同意
-
-5  windows pull拉取失败，mac更改的某个文件的package包名,winodws对那个文件删除了一行空格，导致merge时windows的那个文件会被覆盖。解决方法:右键 --> Git --> Repository --> Stash Changes --> Create Stash 将本地的全部改动临时保存到本地仓库，并撤销了本地的所有改动；然后再pull 最后再点击 UnStash Changes --> Pop Stash ，这样就将之前的改动合并到本地。
 
 
 
-# github篇
+
+
+
+
+
+
+
+#### github团队合作
+
+1 先创建远程仓库详情看本地关联云端 =》在github仓库点settings=>collaborator=>add people 
+
+由winodows创建的项目，邀请mac做团队开发，当mac接受邀请后，仓库里就多了一个winodows项目的同步。
+
+团队邀请开发和fork的区别是，fork的仓库github上前面的名字是自己的名字,而团队邀请的仓库，名字是创建人的名字。
+
+和fork的区别，邀请之后mac上能看到直接的winodows项目库，并且有权限提交修改。
+
+
+
+2 从远程仓库 git clone <版本库的网址>  ，clone时会创建一个项目名的目录，然后子目录下有.git文件，不需要自己手动创建一个目录再   
+
+  clone,而且clone之后,会默认生成一个origin的别名，与github对应项目关联
+
+
+
+3  windows pull拉取失败，mac更改的某个文件的package包名,winodws对那个文件删除了一行空格，导致merge时windows的那个文件会被覆盖。解决方法:右键 --> Git --> Repository --> Stash Changes --> Create Stash 将本地的全部改动临时保存到本地仓库，并撤销了本地的所有改动；然后再pull 最后再点击 UnStash Changes --> Pop Stash ，这样就将之前的改动合并到本地。
+
+
+
+#### github网站操作
 
 fork
 
@@ -182,7 +200,7 @@ pull requests
 
 
 
-# git以前总结
+# git以前总结（以下是旧的）
 
 #### git链接idea
 

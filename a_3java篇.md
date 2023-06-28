@@ -460,9 +460,17 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 DateFormatUtils.format(ms,"yyyy-MM-dd HH:mm:ss.SSS")
 ```
 
+
+
 #### json库
 
 
+
+#### Math库
+
+```java
+Math.max（a,b）
+```
 
 
 
@@ -490,3 +498,14 @@ DateFormatUtils.format(ms,"yyyy-MM-dd HH:mm:ss.SSS")
     }
 ```
 
+2 有一些源码abstract抽象类中，还会定义抽象类，而且这种内部抽象类也也可以在别的代码中实现
+
+例子：flink的KeyedProcessFunction抽象类中，定义了一个public abstract class Context{},通过control+H查找，
+
+看到在KeyedProcessOperator中，定义了个私有类实现了内部抽象类class Context
+
+```java
+ private class ContextImpl extends KeyedProcessFunction<K, IN, OUT>.Context {}
+```
+
+ 
